@@ -1,6 +1,6 @@
 <?php
 
-namespace JSON;
+namespace Secoya\JSON;
 
 /**
  * JSON wrapper of PHP's json_encode, json_decode and json_last_error

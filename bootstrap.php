@@ -1,8 +1,8 @@
 <?php
 
-Autoloader::add_core_namespace('JSON');
+Autoloader::add_core_namespace('Secoya\\JSON');
 
 Autoloader::add_classes(array(
-	'JSON\\JSON' => __DIR__.'/classes/json.php',
-	'JSON\\JSONException' => __DIR__.'/classes/json.php'
+	'Secoya\\JSON\\JSON' => __DIR__.'/classes/json.php',
+	'Secoya\\JSON\\JSONException' => __DIR__.'/classes/json.php'
 ));
