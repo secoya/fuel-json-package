@@ -98,5 +98,3 @@ class JSON {
 
 	private function __construct() {}
 }
-
-class JSONException extends \FuelException {}
