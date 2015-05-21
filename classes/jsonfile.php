@@ -10,7 +10,11 @@ class JSONFile {
 		if($file_path === null){
 			$file_path = tempnam(APPPATH . 'tmp', 'json');
 		}
-		$this->output_file = @fopen($file_path, 'w');
+		if(is_resource($file_path)) {
+			$this->output_file = $file_path;
+		} else if(is_string($file_path)) {
+			$this->output_file = @fopen($file_path, 'w');
+		}
 
 		if($this->output_file === false){
 			throw new IOException("Could not open file $file_path");
@@ -66,7 +70,7 @@ class JSONFile {
 		}
 
 		$this->write('"');
-		
+
 		fclose($fp);
 	}
 
