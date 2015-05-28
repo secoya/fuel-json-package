@@ -2,6 +2,16 @@
 
 namespace Secoya\JSON;
 
+class stringToken {
+	private $val;
+
+	public function __construct($val){
+		$this->val = $val;
+	}
+
+	public function __toString(){ return $this->val; }
+}
+
 /**
  * Decodes JSON data from a stream (returned by fopen).
  * This avoids reading in the entire data to memory when decoding it.
@@ -11,6 +21,8 @@ namespace Secoya\JSON;
 class StreamDecoder {
 	private $stream;
 	private $pos;
+	private $line = 1;
+	private $col = 1;
 	private $token;
 
 	const BEGIN_ARRAY = '[';
@@ -69,10 +81,14 @@ class StreamDecoder {
 				case self::END_OBJECT:
 				case self::COMMA:
 				case self::COLON:
-					throw new IOException("Unexpected token " . var_export($tok, true) . " at position $pos. Expected '[', '{', 'true', 'false', 'null', number or string");
+					throw new IOException("Unexpected token " . var_export($tok, true) . " at line {$this->line}:{$this->col}. Expected '[', '{', 'true', 'false', 'null', number or string");
 				default:
 					return $tok;
 			}
+		}
+
+		if($tok instanceof stringToken){
+			return $tok->__toString();
 		}
 
 		return $tok;
@@ -92,7 +108,7 @@ class StreamDecoder {
 					$this->next_token();
 					return $res;
 				case '"':
-					$key = $this->next_token();
+					$key = $this->next_token()->__toString();
 					if(($t = $this->next_token()) != self::COLON){
 						throw new IOException("Unexpected token $t at positon {$this->pos} expected ':'");
 					}
@@ -155,6 +171,7 @@ class StreamDecoder {
 
 		// Here are the possible values:
 		// - numbers
+		// - strings
 		// - true
 		// - false
 		// - null
@@ -195,7 +212,7 @@ class StreamDecoder {
 		while(($next = $this->read_character()) || true){
 			switch($next){
 				case '"':
-					return implode('', $str);
+					return new stringToken(implode('', $str));
 				case '\\':
 					$escaped = $this->read_character();
 					switch($escaped){
@@ -295,9 +312,13 @@ class StreamDecoder {
 
 	private function peek(){
 		$pos = $this->pos;
+		$col = $this->col;
+		$line = $this->line;
 		$next = $this->next_token();
 		$this->seek($pos);
 		$this->pos = $pos;
+		$this->line = $line;
+		$this->col = $col;
 
 
 		return $next;
@@ -305,10 +326,14 @@ class StreamDecoder {
 
 	private function peek_non_whitespace_char(){
 		$pos = $this->pos;
+		$line = $this->line;
+		$col = $this->col;
 		while(($next = $this->read_character()) && $this->is_whitespace($next)){
 		}
 		$this->seek($pos);
 		$this->pos = $pos;
+		$this->line = $line;
+		$this->col = $col;
 
 
 		return $next;
@@ -342,16 +367,27 @@ class StreamDecoder {
 			throw new IOException("Could not read from stream. At pos {$this->pos}. Real pos {$this->tell()}. End is at {$this->end}");
 		}
 
+		if ($res == "\n"){
+			$this->line++;
+			$this->col = 1;
+		} else {
+			$this->col++;
+		}
+
 		return $res;
 	}
 
 	private function all_tokens_read(){
 		$pos = $this->pos;
+		$line = $this->line;
+		$col = $this->col;
 
 		while(($this->pos < $this->end) && ($ch = $this->read_character())){
 			if(!$this->is_whitespace($ch)){
 				$this->seek($pos);
 				$this->pos = $pos;
+				$this->col = $col;
+				$this->line = $line;
 
 				return false;
 			}
@@ -359,6 +395,8 @@ class StreamDecoder {
 
 		$this->seek($pos);
 		$this->pos = $pos;
+		$this->line = $line;
+		$this->col = $col;
 
 
 		return true;
@@ -367,7 +405,13 @@ class StreamDecoder {
 	private function read_while($chars){
 		$res = [];
 
+		$line = $this->line;
+		$col = $this->col;
+
 		while(in_array(($t = $this->read_character()), $chars)){
+			$line = $this->line;
+			$col = $this->col;
+
 			$res[] = $t;
 
 			if($this->eof()){
@@ -376,6 +420,8 @@ class StreamDecoder {
 		}
 
 		$this->pos--;
+		$this->col = $col;
+		$this->line = $line;
 		$this->seek(-1, SEEK_CUR);
 
 		return implode('', $res);
