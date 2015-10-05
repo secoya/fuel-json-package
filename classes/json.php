@@ -12,7 +12,7 @@ namespace Secoya\JSON;
  * @link http://www.php.net/manual/en/ref.json.php
  */
 class JSON {
-	
+
 	/**
 	 * Encodes objects, arrays and primitive types to json-strings
 	 *
@@ -59,6 +59,11 @@ class JSON {
 			}
 		}
 		return $result;
+	}
+
+	public static function decode_stream($stream, $assoc = false) {
+		$decoder = new StreamDecoder($stream, $assoc);
+		return $decoder->decode();
 	}
 
 	/**

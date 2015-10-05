@@ -130,7 +130,7 @@ class JSONFile {
 	}
 
 	private function write($str){
-		if(fwrite($this->output_file, $str, strlen($str)) === false){
+		if(fwrite($this->output_file, $str, mb_strlen($str)) === false){
 			throw new IOException("Could not write string to file");
 		}
 	}
