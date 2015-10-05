@@ -75,6 +75,10 @@ class JSONFile {
 	}
 
 	private function encode_scalar($string){
+		// Stuff might be a string, object etc
+		if(!is_scalar($string)){
+			$string = Helper::unpack_value($string);
+		}
 		$content = JSON::encode($string);
 
 		// We use this purely in conjunction with ElasticSearch
