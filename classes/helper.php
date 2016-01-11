@@ -13,7 +13,7 @@ class Helper {
 		if($value instanceof Model_Base){
 			return $value->get_encodable_properties();
 		} elseif($value instanceof DateTime) {
-			return intval($value->format('U'));
+			return $value->getTimestamp();
 		} elseif(is_array($value) || $value instanceof ArrayAccess) {
 			return self::unpack_array($value);
 		} elseif($value instanceof Encodable || $value instanceof CoreEncodable){
